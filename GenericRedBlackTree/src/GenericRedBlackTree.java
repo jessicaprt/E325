@@ -72,7 +72,8 @@ public class GenericRedBlackTree<K extends Comparable<K>, V> {
 		if ((node != nil) && (node.parent != nil)){
 			return node.parent.parent;
 		}
-		else{return nil;}
+		else { return nil;
+		}
 		
 	}
 
@@ -85,7 +86,9 @@ public class GenericRedBlackTree<K extends Comparable<K>, V> {
 		if (node.parent == g.lChild){
 			return g.rChild;
 		}
-		else{return g.lChild;}
+		else{
+			return g.lChild;
+			}
 	}
 	
 	public Node sibling(Node n) {
@@ -112,6 +115,22 @@ public class GenericRedBlackTree<K extends Comparable<K>, V> {
 			return true;
 		}
 		return false;
+	}
+	
+	boolean is_Empty() {
+		if (root == nil) {
+			return true;
+		} else {
+			return false;
+		}
+	}
+	
+	public Node findHeir(Node node){
+		Node heir = node.lChild;
+		while (heir.rChild != nil){
+			heir = heir.rChild;
+		}
+		return heir;
 	}
 	
 //    /**
@@ -150,6 +169,12 @@ public class GenericRedBlackTree<K extends Comparable<K>, V> {
         return null;
     }
     
+    public void replace_node(Node node, Node child) {
+    	node = child;
+    	if(node == root) {
+    		root = child;
+    	}
+    }
     
     
     /***** INSERTING A NEW NODE *****/
@@ -175,7 +200,7 @@ public class GenericRedBlackTree<K extends Comparable<K>, V> {
 		}
 	}	
 	
-	void insert(K key, V value) {
+	public void insert(K key, V value) {
 		Node node = new Node(key, value);
 		if (this.isNil()){
 			root = node;
@@ -185,7 +210,7 @@ public class GenericRedBlackTree<K extends Comparable<K>, V> {
 		insert_case1(node);
 	}
 	
-	void insert_case1(Node node)
+	public void insert_case1(Node node)
 	{
 		if (node.parent == nil){
 			node.color = Node.BLACK;
@@ -195,7 +220,7 @@ public class GenericRedBlackTree<K extends Comparable<K>, V> {
 		}
 	}
 
-	void insert_case2(Node node)
+	public void insert_case2(Node node)
 	{
 		if (node.parent.color == Node.BLACK)
 			return; 
@@ -203,7 +228,7 @@ public class GenericRedBlackTree<K extends Comparable<K>, V> {
 			insert_case3(node);
 	}
 
-	void insert_case3(Node n)
+	public void insert_case3(Node n)
 	{
 		Node node = uncle(n), g;
 		if ((node != nil) && (node.color == Node.RED)) {
@@ -217,33 +242,86 @@ public class GenericRedBlackTree<K extends Comparable<K>, V> {
 		}
 	}
 
-	void insert_case4(Node n)
+	public void insert_case4(Node n)
 	{
-		Node node = grandparent(n);
-		if ((n == n.parent.rChild) && (n.parent == node.lChild)) {
+		Node g = grandparent(n);
+		if ((n == n.parent.rChild) && (n.parent == g.lChild)) {
 			rotateleft(n.parent);
 			n = n.lChild;
-		} else if ((n == n.parent.lChild) && (n.parent == node.rChild)) {
+		} else if ((n == n.parent.lChild) && (n.parent == g.rChild)) {
 			rotateright(n.parent);
 			n = n.rChild; 
 		}
 		insert_case5(n);
 	}
 
-	void insert_case5(Node n)
+	public void insert_case5(Node n)
 	{
-		Node node = grandparent(n);
+		Node g = grandparent(n);
 		n.parent.color = Node.BLACK;
-		node.color = Node.RED;
+		g.color = Node.RED;
 		if (n == n.parent.lChild)
-			rotateright(node);
+			rotateright(g);
 		else
-			rotateleft(node);
+			rotateleft(g);
 	}
 
 
 	
 	/***** REMOVING A NODE *****/
+	public K remove(K key) {
+		if (this.is_Empty()){
+			return null;
+		}
+		
+		Node node = root.getNode(key);
+		Node node2 = node;
+		if (node != nil){
+			if (node.lChild != nil && node.rChild != nil) {
+				Node heir = findHeir(node);
+				node.value = heir.value;
+				node.key = heir.key;
+				node2 = heir;
+			}
+			if (node2.lChild == nil && node2.rChild == nil){
+				if (node2.color == Node.RED){
+					node2.replaceWith(nil);
+					return null;
+				}
+				
+				delete_case1(node2);
+				node2.replaceWith(nil);
+				return null;
+			}
+			else if (node2.lChild == nil && node2.rChild != nil){
+				if (node2.color == Node.RED){
+					node2.replaceWith(node2.rChild);
+					return null;
+
+				}
+				if (node2.rChild.color == Node.RED){
+					node2.rChild.color = Node.BLACK;
+					node2.replaceWith(node2.rChild);
+					return null;
+
+				}
+			}
+			else if (node2.lChild != nil && node2.rChild == nil){
+				if (node2.color == Node.RED){
+					node2.replaceWith(node2.lChild);
+					return null;
+				}
+				if (node2.lChild.color == Node.RED){
+					node2.lChild.color = Node.BLACK;
+					node2.replaceWith(node2.lChild);
+					return null;
+
+				}
+			}
+			
+		}
+		return key;
+	}
 	
     public void delete_one_child(Node node) {
     	Node child;        
@@ -254,72 +332,65 @@ public class GenericRedBlackTree<K extends Comparable<K>, V> {
     	}
     }
     
-    public void replace_node(Node node, Node child) {
-    	node = child;
-    	if(node == root) {
-    		root = child;
-    	}
+    public void delete_case1(Node n) {
+    	if(n.parent != nil) delete_case2(n);
     }
     
-    public void delete_case1(Node node) {
-    	if(node.parent != nil) delete_case2(node);
-    }
-    
-    public void delete_case2(Node node) {
-    	Node sibling = sibling(node);
+    public void delete_case2(Node n) {
+    	Node sibling = sibling(n);
     	if(sibling.color == Node.RED) {
-    		node.parent.color = Node.RED;
+    		n.parent.color = Node.RED;
     		sibling.color = Node.BLACK;
-    		if(node == node.parent.lChild) rotateleft(node.parent);
-    		else rotateright(node.parent);
+    		if(n == n.parent.lChild) rotateleft(n.parent);
+    		else rotateright(n.parent);
     	}
-    	delete_case3(node);
+    	delete_case3(n);
     }
     
-    public void delete_case3(Node node) {
-    	Node sibling = sibling(node);
-    	if((node.parent.color == Node.BLACK) &&
+    public void delete_case3(Node n) {
+    	Node sibling = sibling(n);
+    	if((n.parent.color == Node.BLACK) &&
     			(sibling.color == Node.BLACK) &&
     			(sibling.lChild.color == Node.BLACK) &&
     			(sibling.rChild.color == Node.BLACK)) {
     		sibling.color = Node.RED;
-    		delete_case1(node.parent);
+    		delete_case1(n.parent);
     	} else {
-    		delete_case4(node);
+    		delete_case4(n);
     	}
     }
     
-    public void delete_case4(Node node) {
-    	Node sibling = sibling(node);
-    	if((node.parent.color == Node.RED) &&
+    public void delete_case4(Node n) {
+    	Node sibling = sibling(n);
+    	if((n.parent.color == Node.RED) &&
     			(sibling.color == Node.BLACK) &&
     			(sibling.lChild.color == Node.BLACK) &&
     			(sibling.rChild.color == Node.BLACK)) {
     		sibling.color = Node.RED;
-    		node.parent.color = Node.BLACK;
+    		n.parent.color = Node.BLACK;
     	} else {
-    		delete_case5(node);
+    		delete_case5(n);
     	}
     }
     
-    public void delete_case5(Node node) {
-    	Node sibling = sibling(node);
+    public void delete_case5(Node n) {
+    	Node sibling = sibling(n);
     	if (sibling.color == Node.BLACK) {
-    		if ((node == node.parent.lChild) &&
+    		if ((n == n.parent.lChild) &&
     				(sibling.rChild.color == Node.BLACK) &&
     				(sibling.lChild.color == Node.RED)) {
     			sibling.color = Node.RED;
     			sibling.lChild.color = Node.BLACK;
     			rotateright(sibling);
-    		} else if((node == node.parent.rChild) &&
-    				(sibling.rChild.color == Node.BLACK) &&
-    				(sibling.lChild.color == Node.RED)) {
+    		} else if((n == n.parent.rChild) &&
+    				(sibling.lChild.color == Node.BLACK) &&
+    				(sibling.rChild.color == Node.RED)) {
     			sibling.color = Node.RED;
     			sibling.rChild.color = Node.BLACK;
     			rotateleft(sibling);
     		}
     	}
-    	delete_case6(node);
+    	delete_case6(n);
     }
     
     public void delete_case6(Node node) {
@@ -337,16 +408,16 @@ public class GenericRedBlackTree<K extends Comparable<K>, V> {
     	}
     }
 
-    /**
-     * Cast the tree into a string
-     * @return          {@code String} Printed format of the tree
-     */
-    @Override public String toString() {
-        // TODO: Lab 4 Part 3-4 -- print the tree, where each node contains both value and color
-        // You can print it by in-order traversal
-
-        return null;
-    }
+//    /**
+//     * Cast the tree into a string
+//     * @return          {@code String} Printed format of the tree
+//     */
+//    @Override public String toString() {
+//        // TODO: Lab 4 Part 3-4 -- print the tree, where each node contains both value and color
+//        // You can print it by in-order traversal
+//
+//        return null;
+//    }
     
 	public String printColor(Node node) {
 		String str = "";
@@ -426,7 +497,42 @@ public class GenericRedBlackTree<K extends Comparable<K>, V> {
 			this.parent = parent;
 			this.color = color;
 		}
+		
+		public Node getNode(K keyitem) {
+			switch (keyitem.compareTo(key)) {
+			case -1:
+				return lChild.getNode(keyitem);
+
+			case 1:
+				return rChild.getNode(keyitem);
+
+			default:
+				return this;
+			}
+		}
         
+		public void replaceWith(Node replacement) {
+			if (parent == nil)
+				return;
+			if (this == parent.lChild)
+				parent.setleft(replacement);
+			else
+				parent.setright(replacement);
+		}
+		
+		public void setleft(Node child) {
+			lChild = child;
+			if (child != nil) {
+				child.parent = this;
+			}
+		}
+
+		public void setright(Node child) {
+			rChild = child;
+			if (child != nil) {
+				child.parent = this;
+			}
+		}
 
         /**
          * Print the tree node: red node wrapped by "<>"; black node by "[]"
