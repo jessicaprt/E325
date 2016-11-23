@@ -7,6 +7,9 @@ public class GenericRedBlackTree<K extends Comparable<K>, V> {
 	private static final int dflt = 0;
 	private static final int left = 1;
 	private static final int right = 2;
+	private static final int less = -1;
+	private static final int greater = +1;
+	private static int size = 0;
 	
 	// create a nil class to help control leaf children	
 	private class nil extends Node {
@@ -23,8 +26,6 @@ public class GenericRedBlackTree<K extends Comparable<K>, V> {
 	public GenericRedBlackTree() {
 		root = nil;
 	}
-	
-	
 	
 	/***** ROTATE FUNCTIONS *****/
 	public void rotateleft(Node p){
@@ -137,13 +138,19 @@ public class GenericRedBlackTree<K extends Comparable<K>, V> {
 		return heir;
 	}
 	
+	void replace_Node(Node n, Node child){
+		n = child;
+		if (n == root){
+			root = child;
+		}
+	}
+	
 //    /**
 //     * Search the tree to find if the value is contained
 //     * @param value     {@code int} the value to be checked
 //     * @return          {@code boolean} If contains, return {@code true}, otherwise return {@code false}
 //     */
 //    public boolean contains(int value) {
-//    	// Lab 2 Part 2-1 -- find an integer from the tree
 //    	Node curr = root;
 //    	while(curr != null) {
 //    		if (curr.value.equals(value)) return true;
@@ -154,24 +161,13 @@ public class GenericRedBlackTree<K extends Comparable<K>, V> {
 //        return false;
 //    }
 //	
-//  /**
-//  * Get the size of the tree
-//  * @return          {@code int} size of the tree
-//  */
-// public int size() {
-//     return size;
-// }
-    
-    /**
-     * Search for the node by key, and return the corresponding value
-     * @param key       {@code K} the key for searching
-     * @return          {@code V} the value of the node, or {@code NULL} if not found
-     */
-    public V find(K key) {
-        // TODO: Lab 4 Part 3-1 -- find an element from the tree
-
-        return null;
-    }
+	  /**
+	  * Get the size of the tree
+	  * @return          {@code int} size of the tree
+	  */
+	 public int size() {
+	     return size;
+	 }
     
     public void replace_node(Node node, Node child) {
     	node = child;
@@ -205,6 +201,7 @@ public class GenericRedBlackTree<K extends Comparable<K>, V> {
 	}	
 	
 	public void insert(K key, V value) {
+		size += 1;
 		Node node = new Node(key, value);
 		if (this.isNil()){
 			root = node;
@@ -271,9 +268,10 @@ public class GenericRedBlackTree<K extends Comparable<K>, V> {
 	}
 
 
-	
+
 	/***** REMOVING A NODE *****/
 	public void remove(K key) {
+		size -= 1;
 		if (this.is_Empty()){
 			return;
 		}
@@ -301,7 +299,6 @@ public class GenericRedBlackTree<K extends Comparable<K>, V> {
 				if (node2.color == Node.RED){
 					node2.replaceWith(node2.rChild);
 					return;
-
 				}
 				if (node2.rChild.color == Node.RED){
 					node2.rChild.color = Node.BLACK;
@@ -325,14 +322,19 @@ public class GenericRedBlackTree<K extends Comparable<K>, V> {
 		}
 	}
 	
-    public void delete_one_child(Node node) {
-    	Node child;        
-    	if(is_leaf(node) == true) {
-    		child = node.lChild;
-    	} else {
-    		child = node.rChild;
-    	}
-    }
+//	public void remove(K key) {
+//		Node n = root.getNode(key);
+//		Node child = is_leaf(n.rChild) ? n.lChild : n.rChild;
+//		
+//		replace_node(n, child);
+//		if(n.color == Node.BLACK) {
+//			if (child.color == Node.RED) {
+//				child.color = Node.BLACK;
+//			} else {
+//				delete_case1(child);
+//			}
+//		}
+//	}
     
     public void delete_case1(Node n) {
     	if(n.parent != nil) delete_case2(n);
@@ -421,7 +423,7 @@ public class GenericRedBlackTree<K extends Comparable<K>, V> {
 //        return null;
 //    }
     
-	public String printColor(Node node) {
+	public <V,K>String printColor(Node node) {
 		String str = "";
 		if (node.lChild != nil){
 			str += printColor(node.lChild);
@@ -457,22 +459,27 @@ public class GenericRedBlackTree<K extends Comparable<K>, V> {
             keys[i] = (int) (Math.random() * 200);
             System.out.println(String.format("%2d Insert: %-3d ", i+1, keys[i]));
             rbt.insert(keys[i], "\"" + keys[i] + "\"");
+            System.out.println("after inserting");
+            System.out.println("size: " + rbt.size());
+            rbt.printTree();
         } // for (int i = 0; i < 10; i++)
         System.out.println("printing tree: ");
+        System.out.println("size: " + rbt.size());
         rbt.printTree();
 
         assert rbt.root.color == GenericRedBlackTree.Node.BLACK;
         System.out.println(rbt.root);                   // This helps to figure out the tree structure
         System.out.println(rbt);
 
-        for (int i = 0; i < 9; i++) {
+        for (int i = 0; i < 10; i++) {
             System.out.println(String.format("%2d Delete: %3d", i+1, keys[i]));
             System.out.println("after deletion");
-            rbt.printTree();
             rbt.remove(keys[i]);
-            if ((i + 1) % 5 == 0) {
-                System.out.println(rbt);
-            } // if ((i + 1) % 5 == 0)
+            System.out.println("size: " + rbt.size());
+            rbt.printTree();
+//            if ((i + 1) % 5 == 0) {
+//                System.out.println(rbt);
+//            } // if ((i + 1) % 5 == 0)
         } // for (int i = 0; i < 10; i++)
         System.out.println("");
         rbt.printTree();
@@ -486,7 +493,7 @@ public class GenericRedBlackTree<K extends Comparable<K>, V> {
         public K key;
         public V value;
         public boolean color = BLACK;
-        public Node parent = null, lChild = null, rChild = null;
+        public Node parent = nil, lChild = nil, rChild = nil;
 
 		protected Node() {
 			assert nil == null;
@@ -506,12 +513,11 @@ public class GenericRedBlackTree<K extends Comparable<K>, V> {
 		}
 		
 		public Node getNode(K keyitem) {
-			System.out.println(keyitem + " ~~ " + key);
 			switch (keyitem.compareTo(key)) {
-			case -1:
+			case less:
 				return lChild.getNode(keyitem);
 
-			case +1:
+			case greater:
 				return rChild.getNode(keyitem);
 
 			default:

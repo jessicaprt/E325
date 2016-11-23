@@ -1,0 +1,529 @@
+import java.util.ArrayList;
+import java.util.List;
+
+public class GenericRedBlackTree<Key extends Comparable<Key>, Value> {
+
+    private enum Color {RED, BLACK};
+
+    final private Node EMPTY = new Empty();
+
+    private static final int LESS    = -1;
+    private static final int GREATER = +1;
+
+    private Node root;
+
+    public void rotate_left(Node p){
+        Node n = p.right;
+        if (p == root){
+            root = n;
+        }
+        p.right = n.left;
+        n.left.parent = p;
+        n.left = p;
+        n.parent = p.parent;
+        p.parent = n;
+        if (n.parent != EMPTY){
+            if (n.parent.left == p){
+                n.parent.left = n;
+            }
+            else if (n.parent.right == p){
+                n.parent.right = n;
+            }
+        }
+
+    }
+
+    public void rotate_right(Node p){
+        Node n = p.left;
+        if (p == root){
+            root = n;
+        }
+        p.left = n.right;
+        n.right.parent = p;
+        n.right = p;
+        n.parent = p.parent;
+        p.parent = n;
+        if (n.parent != EMPTY){
+            if (n.parent.left == p){
+                n.parent.left = n;
+            }
+            else if (n.parent.right == p){
+                n.parent.right = n;
+            }
+        }
+    }
+
+    public Node grandparent(Node n)
+    {
+        if ((n != EMPTY) && (n.parent != EMPTY))
+            return n.parent.parent;
+        else
+            return EMPTY;
+    }
+
+    public Node uncle(Node n)
+    {
+        Node g = grandparent(n);
+        if (g == EMPTY)
+            return EMPTY; // No grandparent means no uncle
+        if (n.parent == g.left)
+            return g.right;
+        else
+            return g.left;
+    }
+
+    // node is at the root of the tree (so paint it black)
+    void insert_case1(Node n)
+    {
+        if (n.parent == EMPTY){
+            n.color = Color.BLACK;
+        }
+        else{
+            insert_case2(n);
+        }
+    }
+    // parent node is black so we good
+    void insert_case2(Node n)
+    {
+        if (n.parent.color == Color.BLACK)
+            return;
+        else
+            insert_case3(n);
+    }
+    //both parent and uncle are red, repaint it black and make grandparent red
+    void insert_case3(Node n)
+    {
+        Node u = uncle(n), g;
+
+        if ((u != EMPTY) && (u.color == Color.RED)) {
+            n.parent.color = Color.BLACK;
+            u.color = Color.BLACK;
+            g = grandparent(n);
+            g.color = Color.RED;
+            insert_case1(g);
+        } else {
+            insert_case4(n);
+        }
+    }
+    //rotate left and continue onto case 5 because we still violating the black child rule
+    void insert_case4(Node n)
+    {
+        Node g = grandparent(n);
+
+        if ((n == n.parent.right) && (n.parent == g.left)) {
+            rotate_left(n.parent);
+
+            n = n.left;
+
+        } else if ((n == n.parent.left) && (n.parent == g.right)) {
+            rotate_right(n.parent);
+
+            n = n.right;
+        }
+        insert_case5(n);
+    }
+    //rotate grandparent with current node either left or right depending on the current orientation
+    void insert_case5(Node n)
+    {
+        Node g = grandparent(n);
+
+        n.parent.color = Color.BLACK;
+        g.color = Color.RED;
+        if (n == n.parent.left)
+            rotate_right(g);
+        else
+            rotate_left(g);
+    }
+
+    //checks if node has a child
+    public Node sibling(Node n)
+    {
+        if (n == n.parent.left)
+            return n.parent.right;
+        else
+            return n.parent.left;
+    }
+
+    boolean is_leaf(Node n){
+        if(n == EMPTY){
+            return true;
+        }
+        return false;
+    }
+
+    void replace_Node(Node n, Node child){
+        n = child;
+        if (n == root){
+            root = child;
+        }
+    }
+    //precondition that node n has at least one child that is not a leaf
+    void delete_one_child(Node n)
+    {
+
+        Node child = is_leaf(n.right) ? n.left : n.right;
+
+        replace_Node(n, child);
+        if (n.color == Color.BLACK) {
+            if (child.color == Color.RED)
+                child.color = Color.BLACK;
+            else
+                delete_case1(child);
+        }
+    }
+    //n is the root so we done bruh
+    void delete_case1(Node n)
+    {
+        if (n.parent != EMPTY)
+            delete_case2(n);
+    }
+    // sibling is red so we rotate it with the parent yaaaah
+    void delete_case2(Node n)
+    {
+        Node s = sibling(n);
+
+        if (s.color == Color.RED) {
+            n.parent.color = Color.RED;
+            s.color = Color.BLACK;
+            if (n == n.parent.left)
+                rotate_left(n.parent);
+            else
+                rotate_right(n.parent);
+        }
+        delete_case3(n);
+    }
+    // eveything is black so we paint sibling as black
+    void delete_case3(Node n)
+    {
+        Node s = sibling(n);
+        if ((n.parent.color == Color.BLACK) &&
+                (s.color == Color.BLACK) &&
+                (s.left.color == Color.BLACK) &&
+                (s.right.color == Color.BLACK)) {
+            s.color = Color.RED;
+            delete_case1(n.parent);
+        } else
+            delete_case4(n);
+    }
+    // sibling and children are black but parent is red so we swap
+    void delete_case4(Node n)
+    {
+        Node s = sibling(n);
+
+        if ((n.parent.color == Color.RED) &&
+                (s.color == Color.BLACK) &&
+                (s.left.color == Color.BLACK) &&
+                (s.right.color == Color.BLACK)) {
+            s.color = Color.RED;
+            n.parent.color = Color.BLACK;
+        } else
+            delete_case5(n);
+    }
+    //the sibling children have different colors so we rotate the tree to fix it
+    void delete_case5(Node n)
+    {
+        Node s = sibling(n);
+
+
+        if  (s.color == Color.BLACK) {
+            if ((n == n.parent.left) && (s.right.color == Color.BLACK) && (s.left.color == Color.RED)) {
+                s.color = Color.RED;
+                s.left.color = Color.BLACK;
+                rotate_right(s);
+            } else if ((n == n.parent.right) && (s.left.color == Color.BLACK) && (s.right.color == Color.RED)) {
+                s.color = Color.RED;
+                s.right.color = Color.BLACK;
+                rotate_left(s);
+            }
+        }
+        delete_case6(n);
+    }
+    //rotate at p and swap color
+    void delete_case6(Node n)
+    {
+        Node s = sibling(n);
+
+        s.color = n.parent.color;
+        n.parent.color = Color.BLACK;
+
+        if (n == n.parent.left) {
+            s.right.color = Color.BLACK;
+            rotate_left(n.parent);
+        } else {
+            s.left.color = Color.BLACK;
+            rotate_right(n.parent);
+        }
+    }
+
+    public String getNodeString(Node node) {
+        String str = "";
+        if (node.left != EMPTY){
+            str += getNodeString(node.left);
+        }
+        if(node.color==Color.RED){
+            str += "<" + node.value.toString().trim() + ">";
+        }
+        else if(node.color==Color.BLACK){
+            str += "[" + node.value.toString().trim() + "]";
+        }
+        if (node.right != EMPTY){
+            str += getNodeString(node.right);
+        }
+        return str;
+    }
+
+    private class Node{
+        public Key key; // data stored at this node
+        public Value value;
+        public Node left; // reference to left subtree
+        public Node right; // reference to right subtree
+        public Node parent;
+        public Color color;
+
+        protected Node() {
+            assert EMPTY == null;
+        }
+
+        public void print(){
+            String ch = "";
+            if(color==Color.BLACK){
+                ch = "B";
+            }
+            else if(color==Color.RED){
+                ch = "R";
+            }
+            System.out.print("[" + key + ""  + ch + "]");
+        }
+
+
+        // Constructs a leaf node with the given data.
+        public Node(Key key, Value value) {
+            this(key, value, EMPTY, EMPTY, EMPTY, Color.RED);
+        }
+
+        // Constructs a branch node with the given data and links.
+        public Node(Key key, Value value, Node left, Node right, Node parent, Color color) {
+            this.key = key;
+            this.value = value;
+            this.left = left;
+            this.right = right;
+            this.parent = parent;
+            this.color = color;
+        }
+
+        public void replaceWith(Node replacement) {
+            if (parent == EMPTY)
+                return;
+            if (this == parent.left)
+                parent.setLeftChild(replacement);
+            else
+                parent.setRightChild(replacement);
+        }
+
+        public void setLeftChild(Node child) {
+            left = child;
+            if (child != EMPTY) {
+                child.parent = this;
+            }
+        }
+
+        public void setRightChild(Node child) {
+            right = child;
+            if (child != EMPTY) {
+                child.parent = this;
+            }
+        }
+
+        public Node getNode(Key k) {
+            switch (k.compareTo(key)) {
+                case LESS:
+                    return left.getNode(k);
+
+                case GREATER:
+                    return right.getNode(k);
+
+                default: // EQUAL
+                    return this;
+            }
+        }
+    }
+
+    /** The empty node used at leaves */
+    private class Empty extends Node {
+
+        public Empty() {
+            color = Color.BLACK;
+            assert EMPTY == null : "Should only make one empty node instance!";
+        }
+
+        public Node getNode(Key key) {
+            return EMPTY;
+        }
+    }
+
+    public void simpleInsert(Node inserted, Node compared, String position, Node lastNode){
+        if (compared == EMPTY){
+            if(lastNode != EMPTY){
+                if(position == "left"){
+                    lastNode.left = inserted;
+                }
+                else if (position == "right"){
+                    lastNode.right = inserted;
+                }
+                inserted.parent = lastNode;
+            }
+            compared = inserted;
+        }
+        else if(inserted.key.compareTo(compared.key) < 0){
+            simpleInsert(inserted, compared.left, "left", compared);
+        }
+        else if (inserted.key.compareTo(compared.key) > 0){
+            simpleInsert(inserted, compared.right, "right", compared);
+        }
+    }
+
+    public static void main(String[] args) {
+
+        GenericRedBlackTree<Integer, String> rbt = new GenericRedBlackTree<Integer, String>();
+        int[] keys = new int[10];
+        for (int i = 0; i < 10; i++) {
+            keys[i] = (int) (Math.random() * 200);
+            System.out.println(String.format("%2d Insert: %-3d ", i+1, keys[i]));
+            rbt.insert(keys[i], "\"" + keys[i] + "\"");
+        } // for (int i = 0; i < 10; i++)
+        /*
+        assert rbt.root.color == GenericRedBlackTree.Node.Color;
+        System.out.println(rbt.root);                   // This helps to figure out the tree structure
+        System.out.println(rbt);
+        */
+        rbt.printTreeStructure();
+        for (int i = 0; i < 10; i++) {
+            System.out.println(String.format("%2d Delete: %3d", i+1, keys[i]));
+            rbt.delete(keys[i]);
+            if ((i + 1) % 5 == 0) {
+                rbt.printTree();
+                rbt.printTreeStructure();
+                //System.out.println(rbt);
+            } // if ((i + 1) % 5 == 0)
+        } // for (int i = 0; i < 10; i++)
+    }
+
+    public GenericRedBlackTree() {
+        // TODO: initialize the tree
+        root = EMPTY;
+    }
+
+    void insert(Key k, Value v) {
+        // TODO: insert value v using key k
+        Node n = new Node(k, v);
+        if (this.isEmpty()){
+            root = n;
+        }
+        simpleInsert(n, root, "no position", EMPTY);
+        insert_case1(n);
+    }
+    //find our heir/successor so we know which node to replace our current node with
+    Node findHeir(Node n){
+        Node heir = n.left;
+        while (heir.right != EMPTY){
+            heir = heir.right;
+        }
+        return heir;
+    }
+
+    void delete(Key k) {
+        if (this.isEmpty()){
+            return;
+        }
+        Node n = root.getNode(k);
+        Node n2 = n;
+        if (n != EMPTY){
+            //find heir/successor of the node
+            if (n.left != EMPTY && n.right != EMPTY) {
+                Node heir = findHeir(n);
+                n.value = heir.value;
+                n.key = heir.key;
+                n2 = heir;
+            }
+            /* ------------DELETION CASES--------------*/
+            //the not simple deletion need to go through the cases
+            if (n2.left == EMPTY && n2.right == EMPTY){
+                if (n2.color == Color.RED){
+                    n2.replaceWith(EMPTY);
+                    return;
+                }
+
+                delete_case1(n2);
+                n2.replaceWith(EMPTY);
+                return;
+            }
+            //simple case just swap the parent with its right child and change the color
+            else if (n2.left == EMPTY && n2.right != EMPTY){
+                if (n2.color == Color.RED){
+                    n2.replaceWith(n2.right);
+                    return;
+                }
+                if (n2.right.color == Color.RED){
+                    n2.right.color = Color.BLACK;
+                    n2.replaceWith(n2.right);
+                    return;
+                }
+            }
+            //simple case just swap the parent with its left child and change the color then we gucci
+            else if (n2.left != EMPTY && n2.right == EMPTY){
+                if (n2.color == Color.RED){
+                    n2.replaceWith(n2.left);
+                    return;
+                }
+                if (n2.left.color == Color.RED){
+                    n2.left.color = Color.BLACK;
+                    n2.replaceWith(n2.left);
+                    return;
+                }
+            }
+
+        }
+    }
+
+    boolean isEmpty(){
+        if (root == EMPTY){
+            return true;
+        }
+        return false;
+    }
+
+
+    void clearTree(){
+        root = EMPTY;
+    }
+
+    void printTree(){
+        // TODO: print all items
+        if (this.isEmpty()){
+            return;
+        }
+        System.out.println(getNodeString(root));
+        System.out.println("");
+    }
+
+    public void printTreeStructure() {
+        List<Node> nodes = new ArrayList<Node>();
+        nodes.add(this.root);
+
+        while(nodes.size() > 0) {
+            int size = nodes.size();
+            for (int i = 0; i < size; i++) {
+                if (nodes.get(0).key == null) {
+                    nodes.remove(0);
+                    System.out.print("[   ]");
+                } else {
+                    nodes.get(0).print();
+                    nodes.add(nodes.get(0).left);
+                    nodes.add(nodes.get(0).right);
+                    nodes.remove(0);
+                }
+            }
+            System.out.println();
+        }
+    }
+}
