@@ -19,7 +19,10 @@ public class GenericRedBlackTree<K extends Comparable<K>, V> {
 	public GenericRedBlackTree() {
 		root = nil;
 	}
-
+	
+	
+	
+	/***** ROTATE FUNCTIONS *****/
 	public void rotateleft(Node p){
 		Node node = p.rChild;
 		if (p == root){
@@ -60,6 +63,10 @@ public class GenericRedBlackTree<K extends Comparable<K>, V> {
 		}
 	}
 	
+	
+	
+	/***** TREE FAMILY *****/
+	
 	public Node grandparent(Node node)
 	{
 		if ((node != nil) && (node.parent != nil)){
@@ -90,8 +97,18 @@ public class GenericRedBlackTree<K extends Comparable<K>, V> {
 		}
 	}
 	
+	
+	
+	/*** helper functions *****/
 	public boolean isNil(){
 		if (root == nil){
+			return true;
+		}
+		return false;
+	}
+	
+	boolean is_leaf(Node node){
+		if(node == nil){
 			return true;
 		}
 		return false;
@@ -113,6 +130,14 @@ public class GenericRedBlackTree<K extends Comparable<K>, V> {
 //    	}
 //        return false;
 //    }
+//	
+//  /**
+//  * Get the size of the tree
+//  * @return          {@code int} size of the tree
+//  */
+// public int size() {
+//     return size;
+// }
     
     /**
      * Search for the node by key, and return the corresponding value
@@ -124,6 +149,10 @@ public class GenericRedBlackTree<K extends Comparable<K>, V> {
 
         return null;
     }
+    
+    
+    
+    /***** INSERTING A NEW NODE *****/
     
 	public void addNode(Node node, Node check, int pos, Node lastNode){
 		if (check == nil){
@@ -146,11 +175,6 @@ public class GenericRedBlackTree<K extends Comparable<K>, V> {
 		}
 	}	
 	
-    /**
-     * Insert an element to the tree
-     * @param key       {@code K} the key of the new element
-     * @param value     {@code V} the value of the new element
-     */
 	void insert(K key, V value) {
 		Node node = new Node(key, value);
 		if (this.isNil()){
@@ -217,24 +241,101 @@ public class GenericRedBlackTree<K extends Comparable<K>, V> {
 			rotateleft(node);
 	}
 
-    /**
-     * Remove an element from the tree
-     * @param key       {@code K} the key of the element
-     * @return          {@code V} the value of the removed element
-     */
-    public V remove(K key) {
-        // TODO: Lab 4 Part 3-3 -- remove an element from the tree
-        
-        return null;
-    }
 
-//    /**
-//     * Get the size of the tree
-//     * @return          {@code int} size of the tree
-//     */
-//    public int size() {
-//        return size;
-//    }
+	
+	/***** REMOVING A NODE *****/
+	
+    public void delete_one_child(Node node) {
+    	Node child;        
+    	if(is_leaf(node) == true) {
+    		child = node.lChild;
+    	} else {
+    		child = node.rChild;
+    	}
+    }
+    
+    public void replace_node(Node node, Node child) {
+    	node = child;
+    	if(node == root) {
+    		root = child;
+    	}
+    }
+    
+    public void delete_case1(Node node) {
+    	if(node.parent != nil) delete_case2(node);
+    }
+    
+    public void delete_case2(Node node) {
+    	Node sibling = sibling(node);
+    	if(sibling.color == Node.RED) {
+    		node.parent.color = Node.RED;
+    		sibling.color = Node.BLACK;
+    		if(node == node.parent.lChild) rotateleft(node.parent);
+    		else rotateright(node.parent);
+    	}
+    	delete_case3(node);
+    }
+    
+    public void delete_case3(Node node) {
+    	Node sibling = sibling(node);
+    	if((node.parent.color == Node.BLACK) &&
+    			(sibling.color == Node.BLACK) &&
+    			(sibling.lChild.color == Node.BLACK) &&
+    			(sibling.rChild.color == Node.BLACK)) {
+    		sibling.color = Node.RED;
+    		delete_case1(node.parent);
+    	} else {
+    		delete_case4(node);
+    	}
+    }
+    
+    public void delete_case4(Node node) {
+    	Node sibling = sibling(node);
+    	if((node.parent.color == Node.RED) &&
+    			(sibling.color == Node.BLACK) &&
+    			(sibling.lChild.color == Node.BLACK) &&
+    			(sibling.rChild.color == Node.BLACK)) {
+    		sibling.color = Node.RED;
+    		node.parent.color = Node.BLACK;
+    	} else {
+    		delete_case5(node);
+    	}
+    }
+    
+    public void delete_case5(Node node) {
+    	Node sibling = sibling(node);
+    	if (sibling.color == Node.BLACK) {
+    		if ((node == node.parent.lChild) &&
+    				(sibling.rChild.color == Node.BLACK) &&
+    				(sibling.lChild.color == Node.RED)) {
+    			sibling.color = Node.RED;
+    			sibling.lChild.color = Node.BLACK;
+    			rotateright(sibling);
+    		} else if((node == node.parent.rChild) &&
+    				(sibling.rChild.color == Node.BLACK) &&
+    				(sibling.lChild.color == Node.RED)) {
+    			sibling.color = Node.RED;
+    			sibling.rChild.color = Node.BLACK;
+    			rotateleft(sibling);
+    		}
+    	}
+    	delete_case6(node);
+    }
+    
+    public void delete_case6(Node node) {
+    	Node sibling = sibling(node);
+    	
+    	sibling.color = node.parent.color;
+    	node.parent.color = Node.BLACK;
+    	
+    	if(node == node.parent.lChild) {
+    		sibling.rChild.color = Node.BLACK;
+    		rotateleft(node.parent);    		
+    	} else {
+    		sibling.lChild.color = Node.BLACK;
+    		rotateright(node.parent);
+    	}
+    }
 
     /**
      * Cast the tree into a string
