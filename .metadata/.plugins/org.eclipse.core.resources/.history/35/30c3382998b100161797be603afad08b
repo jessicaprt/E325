@@ -1,7 +1,7 @@
 public class GenericRedBlackTree<K extends Comparable<K>, V> {
 
 	final private Node nil = new nil();
-	private Node root;
+	private Node root = nil;
 
 	// constants for addNode method
 	private static final int dflt = 0;
