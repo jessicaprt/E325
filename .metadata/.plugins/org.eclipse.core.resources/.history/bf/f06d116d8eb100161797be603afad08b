@@ -269,9 +269,9 @@ public class GenericRedBlackTree<K extends Comparable<K>, V> {
 
 	
 	/***** REMOVING A NODE *****/
-	public void remove(K key) {
+	public K remove(K key) {
 		if (this.is_Empty()){
-			return;
+			return null;
 		}
 		
 		Node node = root.getNode(key);
@@ -286,39 +286,41 @@ public class GenericRedBlackTree<K extends Comparable<K>, V> {
 			if (node2.lChild == nil && node2.rChild == nil){
 				if (node2.color == Node.RED){
 					node2.replaceWith(nil);
-					return;
+					return null;
 				}
 				
 				delete_case1(node2);
 				node2.replaceWith(nil);
-				return;
+				return null;
 			}
 			else if (node2.lChild == nil && node2.rChild != nil){
 				if (node2.color == Node.RED){
 					node2.replaceWith(node2.rChild);
-					return;
+					return null;
 
 				}
 				if (node2.rChild.color == Node.RED){
 					node2.rChild.color = Node.BLACK;
 					node2.replaceWith(node2.rChild);
-					return;
+					return null;
 
 				}
 			}
 			else if (node2.lChild != nil && node2.rChild == nil){
 				if (node2.color == Node.RED){
 					node2.replaceWith(node2.lChild);
-					return;
+					return null;
 				}
 				if (node2.lChild.color == Node.RED){
 					node2.lChild.color = Node.BLACK;
 					node2.replaceWith(node2.lChild);
-					return;
+					return null;
 
 				}
 			}
+			
 		}
+		return key;
 	}
 	
     public void delete_one_child(Node node) {
@@ -454,16 +456,13 @@ public class GenericRedBlackTree<K extends Comparable<K>, V> {
             System.out.println(String.format("%2d Insert: %-3d ", i+1, keys[i]));
             rbt.insert(keys[i], "\"" + keys[i] + "\"");
         } // for (int i = 0; i < 10; i++)
-        
-        rbt.printTree();
 
         assert rbt.root.color == GenericRedBlackTree.Node.BLACK;
         System.out.println(rbt.root);                   // This helps to figure out the tree structure
         System.out.println(rbt);
 
-        for (int i = 0; i < 9; i++) {
-            System.out.println(String.format("%2d Delete: %3d", i+1, keys[i]));
-            rbt.remove(keys[i]);
+        for (int i = 0; i < 10; i++) {
+            System.out.println(String.format("%2d Delete: %3d(%s)", i+1, keys[i], rbt.remove(keys[i])));
             if ((i + 1) % 5 == 0) {
                 System.out.println(rbt);
             } // if ((i + 1) % 5 == 0)
@@ -500,7 +499,6 @@ public class GenericRedBlackTree<K extends Comparable<K>, V> {
 		}
 		
 		public Node getNode(K keyitem) {
-			System.out.println(keyitem + " ~~ " + key);
 			switch (keyitem.compareTo(key)) {
 			case -1:
 				return lChild.getNode(keyitem);

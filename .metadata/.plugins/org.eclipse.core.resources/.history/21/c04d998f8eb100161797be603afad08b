@@ -454,16 +454,14 @@ public class GenericRedBlackTree<K extends Comparable<K>, V> {
             System.out.println(String.format("%2d Insert: %-3d ", i+1, keys[i]));
             rbt.insert(keys[i], "\"" + keys[i] + "\"");
         } // for (int i = 0; i < 10; i++)
-        
-        rbt.printTree();
 
         assert rbt.root.color == GenericRedBlackTree.Node.BLACK;
         System.out.println(rbt.root);                   // This helps to figure out the tree structure
         System.out.println(rbt);
 
-        for (int i = 0; i < 9; i++) {
+        for (int i = 0; i < 10; i++) {
             System.out.println(String.format("%2d Delete: %3d", i+1, keys[i]));
-            rbt.remove(keys[i]);
+            , rbt.remove(keys[i])
             if ((i + 1) % 5 == 0) {
                 System.out.println(rbt);
             } // if ((i + 1) % 5 == 0)
@@ -500,7 +498,6 @@ public class GenericRedBlackTree<K extends Comparable<K>, V> {
 		}
 		
 		public Node getNode(K keyitem) {
-			System.out.println(keyitem + " ~~ " + key);
 			switch (keyitem.compareTo(key)) {
 			case -1:
 				return lChild.getNode(keyitem);

@@ -500,7 +500,6 @@ public class GenericRedBlackTree<K extends Comparable<K>, V> {
 		}
 		
 		public Node getNode(K keyitem) {
-			System.out.println(keyitem + " ~~ " + key);
 			switch (keyitem.compareTo(key)) {
 			case -1:
 				return lChild.getNode(keyitem);
