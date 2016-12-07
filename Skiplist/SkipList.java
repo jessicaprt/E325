@@ -1,4 +1,6 @@
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Random;
 
 /**
  * Lab 6: Java Collection Framework, Skip List and Apache ANT <br />
@@ -7,32 +9,15 @@ import java.util.ArrayList;
  * @param <V>           {@code V} value of each skip list node
  */
 public class SkipList<K extends Comparable<K>, V> {
+	
+	final private Node NONE = new Node(null, null);
+    final static Random random = new Random();
 
     /**
      * The {@code Node} class for {@code SkipList}
      */
-	Node head;
+	private Node head;
 	
-	public SkipList() {
-		head = new Node(null, null, 1);
-	}
-	
-    private class Node {
-        public K key;
-        public V value;
-        public int level;
-        public ArrayList<Node> forwards = new ArrayList<Node>();
-        public Node(K key, V value, int level) {
-            this.key = key;
-            this.value = value;
-            for (int i = 0; i < level; i++)
-                forwards.add(null);
-        }
-        public String toString() {
-            return String.format("%s(%s,%d)", value, key, forwards.size());
-        }
-    }
-
     /**
      * Level of the skip list. An empty skip list has a level of 1
      */
@@ -42,6 +27,40 @@ public class SkipList<K extends Comparable<K>, V> {
      * Size of the skip list
      */
     private int size = 0;
+    
+	public SkipList() {
+		head = new Node(null, null, 1);
+	}
+	
+    private class Node {
+        public K key;
+        public V value;
+        public ArrayList<Node> forwards = new ArrayList<Node>();
+        public Node(K key, V value, int level) {
+            this.key = key;
+            this.value = value;
+            for (int i = 0; i < level; i++)
+                forwards.add(NONE);
+        }
+        public Node(K key, V value) {
+        	this.key = key;
+        	this.value = value;
+        }
+        
+        public K getKey() {
+        	return key;
+        }
+        
+        public String toString() {
+            return String.format("%s(%s,%d)", value, key, forwards.size());
+        }
+    }
+    
+    public int generateRandom() {
+    	int randlevel = 0;
+    	while(random.nextBoolean()) randlevel++;
+    	return randlevel;
+    }
 
     /**
      * Insert an new element into the skip list
@@ -50,7 +69,42 @@ public class SkipList<K extends Comparable<K>, V> {
      */
     public void insert(K key, V value) {
         // TODO: Lab 5 Part 1-1 -- skip list insertion
-        
+    	
+    	size ++;
+    	//generate random number
+    	int new_lvl = generateRandom();
+//    	System.out.println("head level: " + level());
+//    	
+//    	while(level() < new_lvl) {
+//    		Node new_head = new Node(null, null, level());
+//    		
+//    	}
+    	System.out.println("new level: " + new_lvl);
+    	Node new_el = new Node(key, value, new_lvl);
+    	
+    	if(new_lvl > level) {
+    		for(int i = level; i<= new_lvl; i++) {
+    			head.forwards.add(i, null);
+    		}
+    	}
+    	
+    	level = new_lvl;
+//    	System.out.println("level: " + level);
+    	while(new_lvl > 0) {
+    		Node current = head;
+    		if (current.forwards.get(new_lvl) != null) {
+				while(current.forwards.get(new_lvl) != null) {
+					System.out.println("1");
+					if (new_el.getKey().compareTo(current.forwards.get(new_lvl).getKey()) < 0) {
+						current = current.forwards.get(new_lvl);
+					} else if (new_el.key.compareTo(current.forwards.get(new_lvl).key) > 0) {
+						new_el.forwards.add(new_lvl, current.forwards.get(new_lvl));
+						current.forwards.add(new_lvl, new_el);
+					}
+				}
+    		}
+    		new_lvl --;
+    	}
     }
 
     /**
@@ -74,8 +128,10 @@ public class SkipList<K extends Comparable<K>, V> {
     	int i = level;
     	while (i>0) {
     		while(current.forwards.get(i) != null) {
-    			if (key.compareTo(current.forwards.get(i).key) > 0) {
-    				
+    			switch (key.compareTo(current.forwards.get(i).key)) {
+    				case -1: current = current.forwards.get(i);
+    				case  0: return current.value;
+    				case  1: break;
     			}
     		}
     		i--;
@@ -103,10 +159,9 @@ public class SkipList<K extends Comparable<K>, V> {
      * Print the skip list
      * @return          {@code String} the string format of the skip list
      */
-    public String toString() {
-        // TODO: Lab 5 Part 1-4 -- skip list printing
+    public String toString() {   	
 
-        return null;
+        return head.toString();
     }
 
     /**
