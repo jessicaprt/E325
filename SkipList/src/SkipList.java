@@ -5,8 +5,6 @@ import java.util.ArrayList;
  * The {@code SkipList} class
  * @param <K>           {@code K} key of each skip list node
  * @param <V>           {@code V} value of each skip list node
- *
- * look at this link! http://www.mathcs.emory.edu/~cheung/Courses/323/Syllabus/Map/skip-list-impl.html
  */
 public class SkipList<K extends Comparable<K>, V> {
 
