@@ -11,9 +11,16 @@ public class SkipList<K extends Comparable<K>, V> {
     /**
      * The {@code Node} class for {@code SkipList}
      */
+	Node head;
+	
+	public SkipList() {
+		head = new Node(null, null, 1);
+	}
+	
     private class Node {
         public K key;
         public V value;
+        public int level;
         public ArrayList<Node> forwards = new ArrayList<Node>();
         public Node(K key, V value, int level) {
             this.key = key;
@@ -63,8 +70,16 @@ public class SkipList<K extends Comparable<K>, V> {
      * @return          {@code V} value of the target element
      */
     public V search(K key) {
-        // TODO: Lab 5 Part 1-3 -- skip list node search
-        
+    	Node current = head;
+    	int i = level;
+    	while (i>0) {
+    		while(current.forwards.get(i) != null) {
+    			if (key.compareTo(current.forwards.get(i).key) > 0) {
+    				
+    			}
+    		}
+    		i--;
+    	}
         return null;
     }
 
