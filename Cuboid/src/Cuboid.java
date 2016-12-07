@@ -1,3 +1,6 @@
+import java.util.Comparator;
+import java.util.Arrays;
+
 /**
  * Lab 6: Anonymous Inner Classes and Reflection <br />
  * The {@code Cuboid} class
@@ -74,14 +77,16 @@ public class Cuboid {
      * @param args      {@code String[]} Command line arguments
      */
     public static void main(String[] args) {
-        Cuboid[] cuboids = new Cuboid[] {new Cuboid(3.0, 1.0, 2.0),     // 1
+        Cuboid[] cuboids = new Cuboid[] {new Cuboid(3.0, 2.0, 2.0),     // 4
+                						 new Cuboid(3.0, 1.0, 2.0),     // 1
                                          new Cuboid(2.0, 3.0, 3.0),     // 2
                                          new Cuboid(2.0, 2.0, 2.0),     // 3
-                                         new Cuboid(3.0, 2.0, 2.0),     // 4
                                          new Cuboid(1.0, 2.0, 2.0)};    // 5
 
         System.out.println("Sort by length");
         // TODO: Lab 6 Part 1-1 -- sort cuboids by length
+        
+        Arrays.sort(cuboids, sort_length);
         
         for (Cuboid c: cuboids)
             System.out.println(c);
@@ -90,12 +95,16 @@ public class Cuboid {
         System.out.println("Sort by area");
         // TODO: Lab 6 Part 1-2 -- sort cuboids by area
         
+        Arrays.sort(cuboids, sort_area);
+        
         for (Cuboid c: cuboids)
             System.out.println(c);
         System.out.println();
 
         System.out.println("Sort by volume");
         // TODO: Lab 6 Part 1-3 -- sort cuboids by volume
+        
+        Arrays.sort(cuboids, sort_volume);
         
         for (Cuboid c: cuboids)
             System.out.println(c);
@@ -104,9 +113,39 @@ public class Cuboid {
         System.out.println("Sort by length first and then area");
         // TODO: Lab 6 Part 1-4 -- sort cuboids by length first and then area
         
+        Arrays.sort(cuboids, sort_lengthvolume);
         for (Cuboid c: cuboids)
             System.out.println(c);
         System.out.println();
     }
-
+    
+    static Comparator<Cuboid> sort_length = new Comparator<Cuboid>() {
+		@Override
+		public int compare(Cuboid cuboid1, Cuboid cuboid2) {
+			return Double.compare(cuboid1.getLength(), cuboid2.getLength());
+		}
+    };
+    
+    static Comparator<Cuboid> sort_area = new Comparator<Cuboid>() {
+		@Override
+		public int compare(Cuboid cuboid1, Cuboid cuboid2) {
+			return Double.compare(cuboid1.getArea(), cuboid2.getArea());
+		}
+    };
+    
+    static Comparator<Cuboid> sort_volume = new Comparator<Cuboid>() {
+		@Override
+		public int compare(Cuboid cuboid1, Cuboid cuboid2) {
+			return Double.compare(cuboid1.getVolume(), cuboid2.getVolume());
+		}
+    };
+    
+    static Comparator<Cuboid> sort_lengthvolume = new Comparator<Cuboid>() {
+		@Override
+		public int compare(Cuboid cuboid1, Cuboid cuboid2) {
+			if (Double.valueOf(cuboid1.getLength()).equals(Double.valueOf(cuboid2.getLength())))
+				return Double.compare(cuboid1.getVolume(), cuboid2.getVolume());
+			else return Double.compare(cuboid1.getLength(), cuboid2.getLength());
+		}
+    };
 }

@@ -1,3 +1,6 @@
+import java.util.Map;
+import java.util.HashMap;
+
 /**
  * Lab 6: Anonymous Inner Classes and Reflection <br />
  * The {@code Animal} interface
@@ -71,17 +74,19 @@ class AnimalType {
      * @param criteria      {@code String} how is the animal like
      * @return              {@code Animal} the animal
      */
+	private static Map<String, Class<? extends Animal>> animals = new HashMap<String, Class<? extends Animal>>();
+	
+	
+	public static void mapAnimal(String criteria, Class<? extends Animal> animalClass) {
+		animals.put(criteria, animalClass);
+	}
+	
     public static Animal getAnimal(String criteria) {
-        // TODO: Lab 6 Part 2-1 -- Refactor this method
-        if (criteria.equals("smalll"))
-            return new Mouse();
-        else if (criteria.equals("big"))
-            return new Bison();
-        else if (criteria.equals("lazy"))
-            return new Lion();
-        else if (criteria.equals("loyal"))
-        	return new Dog();
-        return null;
+    	try {
+    		return animals.get(criteria).newInstance();
+    	} catch (Exception e) {
+    		return null;
+    	}
     }
 }
 
@@ -95,20 +100,21 @@ public class JavaDPExample {
      * @param args          {@code String[]} Command line arguments
      */
     public static void main(String[] args) {
-//        AnimalType.getAnimal("small").speak();
+    	AnimalType.mapAnimal("small", Mouse.class);
+    	AnimalType.mapAnimal("big", Bison.class);
+    	AnimalType.mapAnimal("lazy", Lion.class);
+    	AnimalType.mapAnimal("loyal", Dog.class);
+    	
+
+        AnimalType.getAnimal("small").speak();    	
         AnimalType.getAnimal("big").speak();
-        AnimalType.getAnimal("lazy").speak();
-
-        // TODO: Lab 6 Part 2-2 -- add an animal "Dog" here: criteria="loyal"; speak="woof"
-        
+        AnimalType.getAnimal("lazy").speak();        
         AnimalType.getAnimal("loyal").speak();
-
-        // TODO: Lab 6 Part 2-3 -- remove the "small" animal here: Mouse
-
+        
         try {
-            AnimalType.getAnimal("small").speak();
+            AnimalType.getAnimal("smalll").speak();
         } catch (Exception e) {
             System.out.println("Unknown animal...");
-        }
+        }    	
     }
 }
